@@ -1,0 +1,165 @@
+Elastic File Storage
+Amazon Elastic File System (EFS) is a scalable and fully managed file storage service provided by Amazon
+Web Services (AWS). It allows you to create and configure file systems that can be accessed concurrently
+from multiple EC2 instances, providing a highly available and scalable storage solution for your
+applications and workloads.
+Amazon EFS supports for only Amazon Linux instance:
+Step 1: Launching EC2 Instances
+1. Sign in to AWS Management Console.
+2. Go to the EC2 dashboard.
+3. Click on "Launch Instance".
+4. Configure instance details:
+ - Instance Name: EFS-1
+5. Choose an Amazon Machine Image (AMI) for Linux.
+6. Select instance type: t2.micro.
+ - Key Pair: EFS
+ - Network: Choose Subnet-1a
+ - Security Group: Create a new security group (SG) and add NFS and allow from anywhere.
+7. Launch the instance.
+8. Repeat the above steps to launch another instance named EFS-2 in Subnet-1bwith the same
+configuration.
+Step 2: Creating an EFS File System
+1. Go to the EFS service in the AWS Management Console.
+2. Click on "Create file system".
+3. Specify details:
+ - Name: Optional
+ - VPC: Default
+ - Enable region button.
+Click on "Next".
+4. In the Network settings:
+ - Delete all security groups.
+ - Select the newly created security group (NFS).---which is created while creating instance
+Click on "Next" and review the configuration.
+Click on "Create file system".
+Step 3: Accessing the two EC2 instances named EFS-1& EFS -2 in two different PowerShell
+sessions and performing the specified tasks:
+Accessing EFS-1 Instances in Two Different PowerShell Sessions:
+1. Open Two PowerShell Sessions:
+ - Open two separate PowerShell windows or tabs on your local machine.
+For each Instance:
+2. SSH into the Instance:
+ - Use the SSH command to connect to the EFS-1 instance
+ ssh -i [path-to-your-keypair.pem] ec2-user@[instance-public-ip]
+3. Switch to Root User:
+ - Gain root access by executing the following command:
+sudosu
+ 4. Create a Directory:
+ - Make a directory named "efs" using the following command:
+Mkdirefs
+ 5. Install Amazon EFS Utilities:
+ - Use yum package manager to install the Amazon EFS utilities:
+yum install -y amazon-efs-utils
+ 6. List Files:
+ - Execute the following command to list files in the current directory:
+ Ls
+ 7. Verify Installation (Optional):
+ - Optionally, you can verify the installation of the Amazon EFS utilities by checking the
+version:
+efs-utils –version
+ Repeat Steps 2-7 for ------------------------- EFS-2 Instance.
+By following these steps, you'll have accessed each EFS-1 instance in separate
+PowerShell sessions, switched to the root user, created a directory named "efs," installed the
+Amazon EFS utilities, and listed files in the directory. This setup allows you to configure and
+manage each instance individually as needed.
+Step 4: Attaching EFS to EC2 Instances
+1. Go to the EFS service in the AWS Management Console.
+2. Click on the target EFS file system.
+3. Click on the "Attach" button.
+4. Choose "Mount via DNS" option.
+5. Copy the displayed command.,on both ec2 instances(powershell)
+6. Paste and execute the copied command in the terminal to mount the EFS file system onto
+the instance.
+Step 5: Verify and Test EFS
+1. Change the directory to EFS on both instances.
+2. Create a file on one instance.
+3. Verify that the file automatically synchronizes and appears on the other instance.
+By above steps, we can successfully create EC2 instances, configured them, created an EFS file
+system, and attached it to the instances in the same availability zone in the Mumbai region.
+Now, the instances can seamlessly access and share files stored in the EFS file system.
+Scenario-Based Questions on Amazon
+EFS
+1. Multiple EC2 instances across different Availability Zones must read and write the same files
+at the
+same time. Which AWS storage service fits this requirement and why?
+Answer: Amazon EFS. EFS is a fully managed, scalable, and highly available file system that can
+be
+mounted concurrently by multiple EC2 instances across different AZs, allowing simultaneous
+read and
+write operations.
+2. An application running on EC2 in three different AZs needs a shared file system with low
+operational
+overhead. How would EFS support this setup?
+Answer: EFS automatically provides a network file system accessible from EC2 instances in
+multiple AZs.
+It handles scaling, replication across AZs, and maintenance, reducing operational overhead.
+3. You mounted an EFS file system on one EC2 instance. Can another EC2 instance modify the
+same file
+simultaneously? What happens in such a scenario?
+Answer: Yes, multiple EC2 instances can access and modify the same file simultaneously. EFS
+supports
+concurrent read/write, but applications should handle file locking or coordination to avoid data
+conflicts.
+4. Your team tried to attach an EFS file system to an EC2 instance, but the mount command
+timed out.
+What networking components would you check first?
+Answer: Check the VPC subnet, security groups (ensure NFS TCP 2049 is allowed), route tables,
+and DNS
+settings to ensure the EC2 can reach the EFS mount targets.
+5. An EC2 instance in a private subnet is unable to mount EFS. What configuration might be
+missing at
+the subnet or VPC level?
+Answer: The subnet might lack a NAT gateway or internet access for DNS resolution, or DNS
+hostnames
+and DNS resolution might be disabled in the VPC.
+6. You created an EFS file system but forgot to create mount targets in all AZs. How will this
+affect EC2
+instances in those AZs?
+Answer: EC2 instances in AZs without mount targets will be unable to mount the EFS filesystem,
+causing
+DNS resolution or connectivity failures.
+7. Why does EFS require mount targets in each Availability Zone, and what happens if one AZ
+goes
+down?
+Answer: Mount targets provide network access to EC2 instances in that AZ. If an AZ goes down,
+EFS
+remains available via mount targets in other AZs, ensuring high availability.
+8. Two applications in different subnets need access to the same EFS file system. How should
+the EFS
+networking and security groups be configured?
+Answer: Create mount targets in each subnet’s AZ. Use a security group for EFS that allows
+inbound NFS
+(TCP 2049) from the EC2 instances’ security groups.
+9. Your security team wants only specific EC2 instances to access EFS. How can security groups
+be used
+to enforce this?
+Answer: Attach a security group to the EFS mount target that only allows inbound NFS (TCP
+2049) from
+the specific EC2 instances’ security groups.
+10. While mounting EFS, the command specifies -t nfs4. Why does EFS use NFS, and what
+advantage
+does it provide?
+Answer: EFS uses NFSv4 because it is a standard, widely supported network file system protocol
+that
+allows multiple clients to read/write concurrently and supports file permissions and metadata.
+11. An organization wants to migrate from EBS to EFS because multiple EC2 instances need
+concurrent
+access to data. What limitation of EBS is driving this decision?
+Answer: EBS volumes can only be attached to a single EC2 instance at a time (except for EBS
+Multi
+Attach with certain restrictions). This prevents true concurrent access, which EFS supports.
+12. An application team complains about increased latency when accessing EFS from EC2. What
+factors
+related to networking or AZ placement should be considered?
+Answer: Latency may increase if EC2 instances and EFS mount targets are in different AZs, if the
+network
+is congested, or if security groups/route tables are misconfigured. Placement within the same
+AZ
+reduces latency.
+13. Can an EFS file system be accessed from EC2 instances in different VPCs? If yes, what
+networking
+setup is required?
+Answer: Yes, using **VPC peering**, **Transit Gateway**, or **AWS PrivateLink (EFS mount
+targets
+with interface endpoints)** to allow network traffic between VPCs while ensuring security
+groups allow
+NFS traffic.
